@@ -6,4 +6,4 @@ This exercise is about extracting the association rules from a Medical Imaging B
     * EXAM: Each line is already 1 customer and all the exam he did is aggregated in comma separated row.
     
 For the resolution of this case, please see the HTML Notebook in the repository.
-<a id="raw-url" href="https://github.com/fkaminishi/association_rules/blob/master/Association_Rules.nb.html"> Save link as...</a>
+<a id="raw-url" href="https://raw.githubusercontent.com/fkaminishi/association_rules/master/Association_Rules.nb.html"> Save link as...</a>
