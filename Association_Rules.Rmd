@@ -1,0 +1,72 @@
+---
+title: "Association Rules for Medical Imaging Business"
+author: "Flavio Kaminishi"
+date: "06/12/2019"
+output: html_notebook     
+---
+
+```{r install, message=FALSE, warning=FALSE}
+library(data.table)
+library(tidyverse)
+library(ggplot2)
+library(fasttime)
+library(arules)
+library(arulesViz)
+library(RColorBrewer)
+options(digits = 3)
+```
+
+## Preparing the data
+Reading the transaction data and plotting the info.
+```{r, message=FALSE, warning=FALSE}
+order_trans_modal <- read.transactions(
+  file = "tall_transactions_exam.csv",
+  format = "basket",
+  skip = 1,
+  sep = ",")
+```
+
+```{r, message=FALSE, warning=FALSE}
+options(width = 10000)
+itemFrequencyPlot(order_trans_modal,topN=20,type="absolute",col=brewer.pal(8,'Pastel2'), main="Absolute Item Frequency Plot")
+```
+## Analysis
+Using the threshold of 0.01 for both, support and confidence with max 5 length of the relationship.  
+```{r, message=FALSE, warning=FALSE}
+rules = apriori(order_trans_modal, parameter = list(supp=0.01, conf=0.01,maxlen=5))
+```
+Creating the table that will be used to list the rules.
+```{r, message=FALSE, warning=FALSE}
+rules_table = data.table(lhs=labels(lhs(rules)), rhs=(labels(rhs(rules))), quality(rules))
+
+rules_table[, c("support", "confidence"):= lapply(.SD, as.double), .SDcols = c("support", "confidence") ]
+
+name.a = "Who bought (A)"
+name.b = "Also bought (B)"
+name.c = "It happens in % of time"
+name.d = "Probability of the purchase of A can buy B"
+name.e = "Lift"
+name.f = "Times it happened"
+
+setnames(rules_table, c("lhs", "rhs", "support", "confidence", "lift", "count"), c(name.a, name.b, name.c, name.d, name.e, name.f) )
+```
+Iterative graph to view the association rules.
+```{r, message=FALSE, warning=FALSE}
+plot(rules, method = "graph",  engine = "htmlwidget")
+```
+Rendering the table for user.
+```{r, message=FALSE, warning=FALSE}
+DT::datatable(rules_table ,
+           extensions = c("Buttons" , "FixedColumns"),
+           filter = 'top',
+           options = list( autoWidth = TRUE , 
+                           dom = 'Blftip',
+                           pageLength = 25,
+                           searchHighlight = TRUE,
+                           buttons = c('copy', 'csv', 'print'),
+                           scrollX = TRUE,
+                           fixedColumns = list(leftColumns = 2)),
+           class = c('compact cell-border stripe hover') ,
+           rownames = FALSE) %>%
+  DT::formatRound(columns=c(name.c, name.d, name.e), digits=3)
+```
